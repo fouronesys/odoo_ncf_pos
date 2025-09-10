@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tipo_comprobante_all,tipo.comprobante.all,model_tipo_comprobante,,1,0,0,0
+access_tipo_comprobante_user,tipo.comprobante.user,model_tipo_comprobante,group_ncf_user,1,0,0,0
+access_tipo_comprobante_manager,tipo.comprobante.manager,model_tipo_comprobante,group_ncf_manager,1,1,1,1
+access_ncf_sequence_all,ncf.sequence.all,model_ncf_sequence,,1,0,0,0
+access_ncf_sequence_user,ncf.sequence.user,model_ncf_sequence,group_ncf_user,1,0,0,0
+access_ncf_sequence_manager,ncf.sequence.manager,model_ncf_sequence,group_ncf_manager,1,1,1,1
+access_reporte_606_wizard_user,reporte.606.wizard.user,model_reporte_606_wizard,group_dgii_reports,1,1,1,1
+access_reporte_607_wizard_user,reporte.607.wizard.user,model_reporte_607_wizard,group_dgii_reports,1,1,1,1

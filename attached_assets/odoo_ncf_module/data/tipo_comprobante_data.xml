@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Tipos de Comprobante Fiscales Dominicanos -->
+        
+        <!-- 01 - Factura con Crédito Fiscal -->
+        <record id="tipo_comprobante_01" model="tipo.comprobante">
+            <field name="codigo">01</field>
+            <field name="name">Factura con Crédito Fiscal</field>
+            <field name="descripcion">Facturas emitidas a contribuyentes que generan crédito fiscal</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 02 - Factura de Consumo -->
+        <record id="tipo_comprobante_02" model="tipo.comprobante">
+            <field name="codigo">02</field>
+            <field name="name">Factura de Consumo</field>
+            <field name="descripcion">Facturas emitidas a consumidores finales</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">False</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 03 - Nota de Débito -->
+        <record id="tipo_comprobante_03" model="tipo.comprobante">
+            <field name="codigo">03</field>
+            <field name="name">Nota de Débito</field>
+            <field name="descripcion">Notas de débito que aumentan el valor de una factura</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 04 - Nota de Crédito -->
+        <record id="tipo_comprobante_04" model="tipo.comprobante">
+            <field name="codigo">04</field>
+            <field name="name">Nota de Crédito</field>
+            <field name="descripcion">Notas de crédito que disminuyen el valor de una factura</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 11 - Comprobante de Compras -->
+        <record id="tipo_comprobante_11" model="tipo.comprobante">
+            <field name="codigo">11</field>
+            <field name="name">Comprobante de Compras</field>
+            <field name="descripcion">Comprobantes para registrar compras realizadas</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">False</field>
+            <field name="para_compra">True</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 12 - Registro Único de Ingresos -->
+        <record id="tipo_comprobante_12" model="tipo.comprobante">
+            <field name="codigo">12</field>
+            <field name="name">Registro Único de Ingresos</field>
+            <field name="descripcion">Para el registro de ingresos por servicios prestados</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">False</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 13 - Comprobante para Gastos Menores -->
+        <record id="tipo_comprobante_13" model="tipo.comprobante">
+            <field name="codigo">13</field>
+            <field name="name">Comprobante para Gastos Menores</field>
+            <field name="descripcion">Para gastos menores donde no se puede obtener comprobante fiscal</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">False</field>
+            <field name="para_compra">True</field>
+            <field name="requiere_rnc">False</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 14 - Comprobante de Regímenes Especiales -->
+        <record id="tipo_comprobante_14" model="tipo.comprobante">
+            <field name="codigo">14</field>
+            <field name="name">Comprobante de Regímenes Especiales</field>
+            <field name="descripcion">Para contribuyentes acogidos a regímenes especiales</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">False</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- 15 - Comprobante Gubernamental -->
+        <record id="tipo_comprobante_15" model="tipo.comprobante">
+            <field name="codigo">15</field>
+            <field name="name">Comprobante Gubernamental</field>
+            <field name="descripcion">Para operaciones con entidades gubernamentales</field>
+            <field name="es_fiscal">True</field>
+            <field name="para_venta">True</field>
+            <field name="para_compra">True</field>
+            <field name="requiere_rnc">True</field>
+            <field name="activo">True</field>
+        </record>
+
+        <!-- Secuencias NCF de ejemplo -->
+        
+        <!-- NCF para Factura con Crédito Fiscal (01) -->
+        <record id="ncf_seq_01" model="ncf.sequence">
+            <field name="name">NCF - Factura con Crédito Fiscal</field>
+            <field name="tipo_comprobante_id" ref="tipo_comprobante_01"/>
+            <field name="serie">B</field>
+            <field name="secuencia_desde">1</field>
+            <field name="secuencia_hasta">10000</field>
+            <field name="secuencia_actual">0</field>
+            <field name="fecha_inicio" eval="(DateTime.now()).strftime('%Y-01-01')"/>
+            <field name="fecha_fin" eval="(DateTime.now()).strftime('%Y-12-31')"/>
+            <field name="activa">True</field>
+        </record>
+
+        <!-- NCF para Factura de Consumo (02) -->
+        <record id="ncf_seq_02" model="ncf.sequence">
+            <field name="name">NCF - Factura de Consumo</field>
+            <field name="tipo_comprobante_id" ref="tipo_comprobante_02"/>
+            <field name="serie">B</field>
+            <field name="secuencia_desde">1</field>
+            <field name="secuencia_hasta">10000</field>
+            <field name="secuencia_actual">0</field>
+            <field name="fecha_inicio" eval="(DateTime.now()).strftime('%Y-01-01')"/>
+            <field name="fecha_fin" eval="(DateTime.now()).strftime('%Y-12-31')"/>
+            <field name="activa">True</field>
+        </record>
+
+        <!-- NCF para Nota de Débito (03) -->
+        <record id="ncf_seq_03" model="ncf.sequence">
+            <field name="name">NCF - Nota de Débito</field>
+            <field name="tipo_comprobante_id" ref="tipo_comprobante_03"/>
+            <field name="serie">B</field>
+            <field name="secuencia_desde">1</field>
+            <field name="secuencia_hasta">5000</field>
+            <field name="secuencia_actual">0</field>
+            <field name="fecha_inicio" eval="(DateTime.now()).strftime('%Y-01-01')"/>
+            <field name="fecha_fin" eval="(DateTime.now()).strftime('%Y-12-31')"/>
+            <field name="activa">True</field>
+        </record>
+
+        <!-- NCF para Nota de Crédito (04) -->
+        <record id="ncf_seq_04" model="ncf.sequence">
+            <field name="name">NCF - Nota de Crédito</field>
+            <field name="tipo_comprobante_id" ref="tipo_comprobante_04"/>
+            <field name="serie">B</field>
+            <field name="secuencia_desde">1</field>
+            <field name="secuencia_hasta">5000</field>
+            <field name="secuencia_actual">0</field>
+            <field name="fecha_inicio" eval="(DateTime.now()).strftime('%Y-01-01')"/>
+            <field name="fecha_fin" eval="(DateTime.now()).strftime('%Y-12-31')"/>
+            <field name="activa">True</field>
+        </record>
+
+    </data>
+</odoo>

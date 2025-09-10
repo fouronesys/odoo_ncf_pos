@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_invoice_document" inherit_id="account.report_invoice_document" priority="20">
+            <xpath expr="//t[@t-call='web.external_layout']" position="replace">
+                <t t-set="company" t-value="o.company_id"/>
+                <t t-call="web.external_layout">
+                    <div class="page ncf-layout">
+                        <!-- Header -->
+                        <div class="ncf-header o_row" style="border-bottom: 2px solidrgb(0, 0, 0); margin-bottom: 20px; padding-bottom: 10px;">
+                            <div class="row">
+                                <div class="col-3">
+                                    <img t-if="company.logo"
+                                         t-att-src="image_data_uri(company.logo)"
+                                         style="max-height: 100px; max-width: 200px;"
+                                         alt="Logo"/>  <!-- Agrandado -->
+                                </div>
+                                <div class="col-9 text-right o_text_right">
+                                    <h3 t-field="company.name" class="o_company_name"/>
+                                    <div t-field="company.partner_id.street" class="o_company_address"/>
+                                    <div>
+                                        <span t-field="company.partner_id.phone"/> | 
+                                        <span t-field="company.partner_id.email"/>
+                                    </div>
+                                    <div t-if="company.vat">
+                                        RNC: <span t-field="company.vat"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Título -->
+                        <div class="document-title o_background_primary o_text_white o_font_bold o_text_uppercase" style="padding: 8px 15px;">
+                            <span t-if="o.move_type == 'out_invoice'">FACTURA</span>
+                            <span t-if="o.move_type == 'out_refund'">NOTA DE CRÉDITO</span>
+                            <span t-if="o.move_type == 'in_invoice'">FACTURA DE PROVEEDOR</span>
+                            <span t-if="o.move_type == 'in_refund'">NOTA DE DÉBITO</span>
+                        </div>
+
+                        <!-- Información principal -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Número:</strong> <span t-field="o.name"/><br/>
+                                <strong>Fecha:</strong> <span t-field="o.invoice_date"/><br/>
+                                <strong t-if="o.invoice_date_due">Vencimiento:</strong> 
+                                <span t-if="o.invoice_date_due" t-field="o.invoice_date_due"/>
+                            </div>
+                            <div class="col-6 text-right">
+                                <strong t-if="o.tipo_comprobante_id">Tipo de comprobante:</strong> 
+                                <span t-if="o.tipo_comprobante_id" t-field="o.tipo_comprobante_id.name"/><br/>
+                                <strong t-if="o.ncf">NCF:</strong>
+                                <span t-if="o.ncf" t-field="o.ncf"/><br/>
+                                <strong>Estado:</strong> 
+                                <span t-if="o.state == 'draft'" class="badge badge-secondary">Borrador</span>
+                                <span t-if="o.state == 'posted'" class="badge badge-success">Validado</span>
+                                <span t-if="o.state == 'cancel'" class="badge badge-danger">Cancelado</span>
+                            </div>
+                        </div>
+
+                        <!-- Información del cliente -->
+                        <div class="ncf-client-info o_background_light o_border_primary" style="padding: 15px; margin: 15px 0;">
+                            <div class="row">
+                                <div class="col-8">
+                                    <strong class="o_text_primary">CLIENTE</strong><br/>
+                                    <strong t-field="o.partner_id.name" style="font-size: 16px;"/><br/>
+                                    <span t-field="o.partner_id.street"/><br/>
+                                    <span t-if="o.partner_id.city" t-field="o.partner_id.city"/>
+                                    <span t-if="o.partner_id.state_id">, <t t-esc="o.partner_id.state_id.name"/></span><br/>
+                                    <t t-if="o.partner_id.phone or o.partner_id.email">
+                                        <span t-if="o.partner_id.phone">Tel: <t t-esc="o.partner_id.phone"/></span>
+                                        <span t-if="o.partner_id.email"> | Email: <t t-esc="o.partner_id.email"/></span>
+                                    </t>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <t t-if="o.partner_id.vat">
+                                        <strong>RNC/Cédula:</strong><br/>
+                                        <span style="font-size:16px;"><t t-esc="o.partner_id.vat"/></span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de líneas -->
+                        <table class="table table-sm invoice-table" style="margin-top: 20px;">
+                            <thead class="o_background_primary o_text_white">
+                                <tr>
+                                    <th style="width: 50%;">DESCRIPCIÓN</th>
+                                    <th style="width: 12%;">CANT.</th>
+                                    <th style="width: 19%;">PRECIO UNIT.</th>
+                                    <th style="width: 19%;">SUBTOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.invoice_line_ids" t-as="line">
+                                    <td>
+                                        <span t-field="line.name"/>
+                                        <div t-if="line.product_id.default_code" class="o_text_muted small">
+                                            Código: <span t-field="line.product_id.default_code"/>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-field="line.quantity"/>
+                                        <span t-if="line.product_uom_id" t-field="line.product_uom_id.name"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="line.price_unit" 
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="line.price_subtotal" 
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Totales -->
+                        <div class="row">
+                            <div class="col-7"></div>
+                            <div class="col-5">
+                                <div class="ncf-totals o_background_light o_border_light p-3">
+                                    <div class="ncf-total-line">
+                                        <span><strong>Subtotal:</strong></span>
+                                        <span t-field="o.amount_untaxed" 
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </div>
+
+                                    <div t-foreach="o.line_ids.filtered(lambda x: x.tax_line_id)" t-as="tax_line" class="ncf-total-line">
+                                        <strong>
+                                            <span t-field="tax_line.tax_line_id.name"/>
+                                        </strong>:
+                                        <span t-field="tax_line.amount_currency" 
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </div>
+
+                                    <hr/>
+                                    <div class="ncf-total-line ncf-total-final o_background_primary o_text_white o_font_bold">
+                                        <span>TOTAL:</span>
+                                        <span t-field="o.amount_total" 
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div t-if="o.narration" class="mt-4">
+                            <strong>Observaciones:</strong><br/>
+                            <span t-field="o.narration"/>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="ncf-footer o_text_muted text-center small mt-3">
+                            <div t-if="company.report_footer" t-field="company.report_footer"/>
+                            <div t-if="not company.report_footer">
+                                Este documento ha sido generado electrónicamente y es válido sin firma.
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+        </template>
+    </data>
+</odoo>

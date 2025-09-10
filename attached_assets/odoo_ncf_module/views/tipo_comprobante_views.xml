@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de lista para tipos de comprobante -->
+    <record id="view_tipo_comprobante_tree" model="ir.ui.view">
+        <field name="name">tipo.comprobante.tree</field>
+        <field name="model">tipo.comprobante</field>
+        <field name="arch" type="xml">
+            <tree string="Tipos de Comprobante">
+                <field name="codigo"/>
+                <field name="name"/>
+                <field name="es_fiscal"/>
+                <field name="para_venta"/>
+                <field name="para_compra"/>
+                <field name="requiere_rnc"/>
+                <field name="activo"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario para tipos de comprobante -->
+    <record id="view_tipo_comprobante_form" model="ir.ui.view">
+        <field name="name">tipo.comprobante.form</field>
+        <field name="model">tipo.comprobante</field>
+        <field name="arch" type="xml">
+            <form string="Tipo de Comprobante">
+                <header>
+                    <field name="activo" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="codigo"/>
+                            <field name="name"/>
+                            <field name="secuencia_id"/>
+                        </group>
+                        <group>
+                            <field name="es_fiscal"/>
+                            <field name="para_venta"/>
+                            <field name="para_compra"/>
+                            <field name="requiere_rnc"/>
+                        </group>
+                    </group>
+                    <field name="descripcion" placeholder="Descripción detallada del tipo de comprobante..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para tipos de comprobante -->
+    <record id="action_tipo_comprobante" model="ir.actions.act_window">
+        <field name="name">Tipos de Comprobante</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">tipo.comprobante</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear un nuevo tipo de comprobante fiscal
+            </p>
+            <p>
+                Los tipos de comprobante definen las categorías de documentos fiscales
+                que se pueden emitir según las normativas de la DGII.
+            </p>
+        </field>
+    </record>
+
+    <!-- Vista de lista para secuencias NCF -->
+    <record id="view_ncf_sequence_tree" model="ir.ui.view">
+        <field name="name">ncf.sequence.tree</field>
+        <field name="model">ncf.sequence</field>
+        <field name="arch" type="xml">
+            <tree string="Secuencias NCF" decoration-danger="estado in ('agotada', 'vencida')" decoration-warning="alerta_stock_bajo or alerta_vencimiento">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="display_name"/>
+                <field name="tipo_comprobante_id"/>
+                <field name="serie"/>
+                <field name="disponibles" string="Disponibles"/>
+                <field name="usados" string="Usados"/>
+                <field name="total" string="Total"/>
+                <field name="porcentaje_usado" string="% Usado" widget="progressbar"/>
+                <field name="fecha_inicio"/>
+                <field name="fecha_fin"/>
+                <field name="estado" widget="badge" decoration-success="estado == 'activa'" decoration-danger="estado in ('agotada', 'vencida')" decoration-muted="estado == 'inactiva'"/>
+                <field name="alerta_stock_bajo" invisible="1"/>
+                <field name="alerta_vencimiento" invisible="1"/>
+                <field name="activa" invisible="1"/>
+                <field name="agotada" invisible="1"/>
+                <field name="vencida" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario para secuencias NCF -->
+    <record id="view_ncf_sequence_form" model="ir.ui.view">
+        <field name="name">ncf.sequence.form</field>
+        <field name="model">ncf.sequence</field>
+        <field name="arch" type="xml">
+            <form string="Secuencia NCF">
+                <header>
+                    <field name="estado" widget="statusbar" statusbar_visible="activa,agotada,vencida"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="get_next_ncf" string="Generar Siguiente NCF" type="object" class="oe_stat_button" icon="fa-plus-circle" invisible="estado != 'activa'"/>
+                        <button name="check_all_alerts" string="Verificar Alertas" type="object" class="oe_stat_button" icon="fa-warning"/>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert" invisible="not alerta_stock_bajo and not alerta_vencimiento">
+                        <field name="alerta_stock_bajo" invisible="1"/>
+                        <field name="alerta_vencimiento" invisible="1"/>
+                        <p invisible="not alerta_stock_bajo"><strong>⚠️ Stock Bajo:</strong> Quedan pocos NCF disponibles en esta secuencia.</p>
+                        <p invisible="not alerta_vencimiento"><strong>⚠️ Vencimiento Próximo:</strong> Esta secuencia está próxima a vencer.</p>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="tipo_comprobante_id"/>
+                            <field name="serie"/>
+                        </group>
+                        <group>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_fin"/>
+                            <field name="activa" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Configuración de Rango">
+                        <group>
+                            <field name="secuencia_desde"/>
+                            <field name="secuencia_hasta"/>
+                            <field name="total" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="secuencia_actual" readonly="1"/>
+                            <field name="usados" readonly="1"/>
+                            <field name="disponibles" readonly="1"/>
+                            <field name="porcentaje_usado" widget="progressbar" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Configuración de Alertas">
+                        <group>
+                            <field name="limite_alerta_stock"/>
+                            <field name="dias_alerta_vencimiento"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Campos ocultos para controles -->
+                    <field name="agotada" invisible="1"/>
+                    <field name="vencida" invisible="1"/>
+                    <field name="display_name" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para secuencias NCF -->
+    <record id="action_ncf_sequence" model="ir.actions.act_window">
+        <field name="name">Secuencias NCF</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ncf.sequence</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva secuencia NCF
+            </p>
+            <p>
+                Las secuencias NCF definen los rangos de números de comprobantes fiscales
+                autorizados por la DGII para cada tipo de comprobante.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú principal -->
+    <menuitem id="menu_comprobantes_fiscales" name="Comprobantes Fiscales" parent="account.menu_finance" sequence="50"/>
+    
+    <!-- Submenús -->
+    <menuitem id="menu_tipo_comprobante" name="Tipos de Comprobante" parent="menu_comprobantes_fiscales" action="action_tipo_comprobante" sequence="10"/>
+    <menuitem id="menu_ncf_sequence" name="Secuencias NCF" parent="menu_comprobantes_fiscales" action="action_ncf_sequence" sequence="20"/>
+
+</odoo>

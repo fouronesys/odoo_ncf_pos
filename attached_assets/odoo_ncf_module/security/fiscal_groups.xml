@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Categoría del módulo para comprobantes fiscales dominicanos -->
+    <record id="module_category_dominican_fiscal" model="ir.module.category">
+        <field name="name">República Dominicana - Fiscal</field>
+        <field name="description">Gestión de comprobantes fiscales dominicanos (NCF, RNC, DGII)</field>
+        <field name="sequence">35</field>
+    </record>
+
+    <!-- Grupo básico para usuarios de comprobantes fiscales -->
+    <record id="group_ncf_user" model="res.groups">
+        <field name="name">Usuario NCF</field>
+        <field name="category_id" ref="module_category_dominican_fiscal"/>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_user'))]"/>
+        <field name="comment">Acceso básico a funciones de comprobantes fiscales dominicanos</field>
+    </record>
+
+    <!-- Grupo para administradores de comprobantes fiscales -->
+    <record id="group_ncf_manager" model="res.groups">
+        <field name="name">Administrador NCF</field>
+        <field name="category_id" ref="module_category_dominican_fiscal"/>
+        <field name="implied_ids" eval="[(4, ref('group_ncf_user')), (4, ref('account.group_account_manager'))]"/>
+        <field name="comment">Administración completa de tipos de comprobantes, secuencias NCF y configuración fiscal</field>
+    </record>
+
+    <!-- Grupo para usuarios que pueden generar reportes DGII -->
+    <record id="group_dgii_reports" model="res.groups">
+        <field name="name">Reportes DGII</field>
+        <field name="category_id" ref="module_category_dominican_fiscal"/>
+        <field name="implied_ids" eval="[(4, ref('group_ncf_user'))]"/>
+        <field name="comment">Generación de reportes 606 y 607 para la DGII</field>
+    </record>
+
+    <!-- Grupo para gestión de RNC y validaciones -->
+    <record id="group_rnc_manager" model="res.groups">
+        <field name="name">Gestor RNC</field>
+        <field name="category_id" ref="module_category_dominican_fiscal"/>
+        <field name="implied_ids" eval="[(4, ref('group_ncf_user'))]"/>
+        <field name="comment">Gestión y validación de RNC de clientes y proveedores</field>
+    </record>
+
+    <!-- Asignación del usuario administrador a los grupos de seguridad -->
+    <record id="base.user_admin" model="res.users">
+        <field name="groups_id" eval="[(4, ref('group_ncf_manager')), (4, ref('group_dgii_reports')), (4, ref('group_rnc_manager'))]"/>
+    </record>
+</odoo>

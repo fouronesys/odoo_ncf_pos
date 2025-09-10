@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Herencia de la vista de formulario de órdenes POS -->
+    <record id="view_pos_order_form_inherit_ncf" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.ncf</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campos NCF después del partner -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <group string="Información Fiscal" colspan="2">
+                    <group>
+                        <field name="tipo_comprobante_id"/>
+                        <field name="es_fiscal" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="ncf" readonly="state != 'draft'" 
+                               style="font-weight: bold; font-size: 16px; color: #007bff;"
+                               invisible="es_fiscal == False"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Herencia de la vista de lista de órdenes POS -->
+    <record id="view_pos_order_tree_inherit_ncf" model="ir.ui.view">
+        <field name="name">pos.order.tree.inherit.ncf</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <!-- Agregar columnas NCF -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ncf" string="NCF"/>
+                <field name="tipo_comprobante_id" string="Tipo Comp."/>
+                <field name="es_fiscal" string="Fiscal"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda con filtros NCF para POS -->
+    <record id="view_pos_order_filter_inherit_ncf" model="ir.ui.view">
+        <field name="name">pos.order.search.inherit.ncf</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_search"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campo de búsqueda por NCF -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ncf" string="NCF"/>
+                <field name="tipo_comprobante_id" string="Tipo Comprobante"/>
+            </xpath>
+            
+            <!-- Agregar filtros básicos -->
+            <xpath expr="//search" position="inside">
+                <filter string="Fiscales" name="fiscal" domain="[('es_fiscal', '=', True)]"/>
+                <filter string="No Fiscales" name="no_fiscal" domain="[('es_fiscal', '=', False)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Tipo de Comprobante" name="group_tipo_comprobante" domain="[]" context="{'group_by': 'tipo_comprobante_id'}"/>
+                    <filter string="Fiscal/No Fiscal" name="group_fiscal" domain="[]" context="{'group_by': 'es_fiscal'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Acción para órdenes POS fiscales -->
+    <record id="action_pos_orders_fiscales" model="ir.actions.act_window">
+        <field name="name">Órdenes POS Fiscales</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('es_fiscal', '=', True)]</field>
+        <field name="context">{'search_default_fiscal': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay órdenes POS fiscales registradas
+            </p>
+            <p>
+                Las órdenes POS fiscales son aquellas que requieren NCF según las normativas de la DGII.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú para órdenes POS fiscales -->
+    <menuitem id="menu_pos_orders_fiscales" 
+              name="Órdenes POS Fiscales" 
+              parent="menu_comprobantes_fiscales" 
+              action="action_pos_orders_fiscales" 
+              sequence="40"/>
+
+</odoo>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Herencia de la vista de formulario de contactos -->
+    <record id="view_partner_form_inherit_rnc" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.rnc</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campos RNC después del VAT -->
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="tipo_rnc"/>
+                <field name="rnc"/>
+                <button name="action_validate_rnc_dgii" 
+                        string="Validar RNC" 
+                        type="object" 
+                        class="btn-primary"
+                        invisible="tipo_rnc != 'rnc'"/>
+            </xpath>
+            
+            <!-- Agregar campos fiscales en una nueva pestaña -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Información Fiscal" name="fiscal_info">
+                    <group>
+                        <group>
+                            <field name="es_contribuyente"/>
+                            <field name="exento_itbis"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Herencia de la vista de lista de contactos -->
+    <record id="view_partner_tree_inherit_rnc" model="ir.ui.view">
+        <field name="name">res.partner.tree.inherit.rnc</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <!-- Agregar columna RNC -->
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="rnc" string="RNC/Cédula"/>
+                <field name="es_contribuyente" string="Contribuyente"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda con filtros RNC -->
+    <record id="view_res_partner_filter_inherit_rnc" model="ir.ui.view">
+        <field name="name">res.partner.search.inherit.rnc</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <!-- Agregar filtros -->
+            <xpath expr="//filter[@name='supplier']" position="after">
+                <filter string="Contribuyentes" name="contribuyentes" domain="[('es_contribuyente', '=', True)]"/>
+                <filter string="Exentos ITBIS" name="exentos_itbis" domain="[('exento_itbis', '=', True)]"/>
+            </xpath>
+            
+            <!-- Agregar campo de búsqueda por RNC -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="rnc" string="RNC/Cédula"/>
+            </xpath>
+            
+            <!-- Agregar agrupación -->
+            <xpath expr="//group" position="inside">
+                <filter string="Tipo de Documento" name="group_tipo_rnc" domain="[]" context="{'group_by': 'tipo_rnc'}"/>
+                <filter string="Contribuyente" name="group_contribuyente" domain="[]" context="{'group_by': 'es_contribuyente'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Acción para contribuyentes -->
+    <record id="action_contribuyentes" model="ir.actions.act_window">
+        <field name="name">Contribuyentes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('es_contribuyente', '=', True)]</field>
+        <field name="context">{'search_default_contribuyentes': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay contribuyentes registrados
+            </p>
+            <p>
+                Los contribuyentes son empresas o personas registradas en la DGII 
+                que están obligadas a emitir comprobantes fiscales.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú para contribuyentes -->
+    <menuitem id="menu_contribuyentes" 
+              name="Contribuyentes" 
+              parent="menu_comprobantes_fiscales" 
+              action="action_contribuyentes" 
+              sequence="50"/>
+
+</odoo>

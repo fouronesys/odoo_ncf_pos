@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de formulario para wizard reporte 606 -->
+    <record id="view_reporte_606_wizard_form" model="ir.ui.view">
+        <field name="name">reporte.606.wizard.form</field>
+        <field name="model">reporte.606.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Reporte 606 - Ventas">
+                <group invisible="archivo_reporte">
+                    <group>
+                        <field name="fecha_desde"/>
+                        <field name="fecha_hasta"/>
+                    </group>
+                    <group>
+                        <field name="incluir_anulados"/>
+                        <field name="formato_reporte"/>
+                    </group>
+                </group>
+                
+                <group invisible="not archivo_reporte">
+                    <field name="archivo_reporte" invisible="1"/>
+                    <field name="nombre_archivo" readonly="1"/>
+                    <div class="alert alert-success" role="alert">
+                        <strong>¡Reporte generado exitosamente!</strong>
+                        <p>El reporte ha sido generado correctamente. Haga clic en "Descargar" para obtener el archivo.</p>
+                    </div>
+                </group>
+                
+                <footer>
+                    <button string="Generar Reporte" 
+                            name="action_generar_reporte" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="archivo_reporte"/>
+                    <button string="Descargar" 
+                            name="action_descargar_archivo" 
+                            type="object" 
+                            class="btn-success"
+                            invisible="not archivo_reporte"/>
+                    <button string="Cerrar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para wizard reporte 606 -->
+    <record id="action_reporte_606_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Reporte 606</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">reporte.606.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Generar reporte 606 de ventas
+            </p>
+            <p>
+                El reporte 606 contiene información de todas las ventas realizadas
+                durante un período específico según las normativas de la DGII.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú para reporte 606 -->
+    <menuitem id="menu_reporte_606" 
+              name="Reporte 606 (Ventas)" 
+              parent="menu_comprobantes_fiscales" 
+              action="action_reporte_606_wizard" 
+              sequence="60"/>
+
+</odoo>
