@@ -1,14 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Herencia de la vista de formulario de órdenes POS -->
     <record id="view_pos_order_form_ncf_inherit" model="ir.ui.view">
         <field name="name">pos.order.form.ncf.inherit</field>
         <field name="model">pos.order</field>
-        <field name="inherit_id" ref="odoo_ncf_module.pos_order_form_ncf_restaurant"/>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="tipo_comprobante_id"/>
-                <field name="es_fiscal"/>
-                <field name="ncf"/>
+                <group string="Información Fiscal NCF" colspan="2">
+                    <group>
+                        <field name="tipo_comprobante_id" 
+                               options="{'no_create': True, 'no_edit': True}"
+                               domain="[('para_venta', '=', True), ('activo', '=', True)]"/>
+                        <field name="es_fiscal" readonly="1"/>
+                        <field name="ncf_generado_automaticamente" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="ncf" 
+                               readonly="state != 'draft'" 
+                               style="font-weight: bold; font-size: 14px; color: #007bff;"
+                               invisible="es_fiscal == False"/>
+                        <button name="action_assign_ncf" 
+                                string="Generar NCF" 
+                                type="object"
+                                class="btn-secondary"
+                                invisible="es_fiscal == False or ncf"
+                                help="Generar NCF automáticamente"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>
+
+    <!-- Herencia de la vista de lista de órdenes POS -->
+    <record id="view_pos_order_tree_ncf_inherit" model="ir.ui.view">
+        <field name="name">pos.order.tree.ncf.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ncf" string="NCF" optional="show"/>
+                <field name="tipo_comprobante_id" string="Tipo Comp." optional="show"/>
+                <field name="es_fiscal" string="Fiscal" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda con filtros NCF -->
+    <record id="view_pos_order_search_ncf_inherit" model="ir.ui.view">
+        <field name="name">pos.order.search.ncf.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ncf" string="NCF"/>
+                <field name="tipo_comprobante_id" string="Tipo Comprobante"/>
+            </xpath>
+            
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="Fiscales" name="fiscal" domain="[('es_fiscal', '=', True)]"/>
+                <filter string="No Fiscales" name="no_fiscal" domain="[('es_fiscal', '=', False)]"/>
+                <filter string="Con NCF" name="con_ncf" domain="[('ncf', '!=', False)]"/>
+                <filter string="Sin NCF" name="sin_ncf" domain="[('ncf', '=', False)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Tipo de Comprobante" name="group_tipo_comprobante" 
+                            domain="[]" context="{'group_by': 'tipo_comprobante_id'}"/>
+                    <filter string="Fiscal/No Fiscal" name="group_fiscal" 
+                            domain="[]" context="{'group_by': 'es_fiscal'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
