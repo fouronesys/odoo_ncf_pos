@@ -1,15 +1,138 @@
-<templates id="template" xml:space="preserve">
-    <t t-name="pos_ncf_popup">
-        <div class="ncf-popup">
-            <label>Tipo de Comprobante:</label>
-            <select name="tipo_comprobante_id">
-                <t t-foreach="env.pos.db.tipo_comprobante" t-as="tipo">
-                    <option t-att-value="tipo.id"><t t-esc="tipo.name"/></option>
-                </t>
-            </select>
-            <label>NCF:</label>
-            <input type="text" name="ncf"/>
-            <button class="btn btn-primary confirm-ncf" t-on-click="confirm">Confirmar</button>
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    
+    <!-- NCF Popup Template for Odoo 17 OWL -->
+    <t t-name="odoo_ncf_pos.NCFPopup" owl="1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        <i class="fa fa-file-text-o me-2"/>
+                        <t t-esc="props.title"/>
+                    </h4>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">Tipo de Comprobante:</label>
+                                <select class="form-select" 
+                                        t-model="state.tipo_comprobante_id"
+                                        t-on-change="onTipoComprobanteChange">
+                                    <option value="">-- Seleccionar Tipo --</option>
+                                    <t t-foreach="tipos_comprobante" t-as="tipo" t-key="tipo.id">
+                                        <option t-att-value="tipo.id" 
+                                                t-att-selected="state.tipo_comprobante_id === tipo.id">
+                                            [<t t-esc="tipo.codigo"/>] <t t-esc="tipo.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" t-if="showNCFField">
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">NCF (Número de Comprobante Fiscal):</label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           t-model="state.ncf"
+                                           t-on-input="onNCFChange"
+                                           placeholder="Ej: B0100000001"
+                                           maxlength="11"/>
+                                    <button class="btn btn-outline-primary" 
+                                            type="button"
+                                            t-on-click="generateNCF"
+                                            title="Generar NCF automáticamente">
+                                        <i class="fa fa-refresh"/>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    El NCF será generado automáticamente si está vacío
+                                </small>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       t-model="state.auto_generate"
+                                       t-on-change="onAutoGenerateChange"
+                                       id="auto_generate_ncf"/>
+                                <label class="form-check-label" for="auto_generate_ncf">
+                                    Generar NCF automáticamente
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" t-if="selectedTipoComprobante">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle me-2"/>
+                                <strong>Información:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Tipo: <t t-esc="selectedTipoComprobante.name"/></li>
+                                    <li>Código: <t t-esc="selectedTipoComprobante.codigo"/></li>
+                                    <li>Es Fiscal: <span t-if="selectedTipoComprobante.es_fiscal" class="badge bg-success">Sí</span><span t-else="" class="badge bg-secondary">No</span></li>
+                                    <li t-if="selectedTipoComprobante.es_fiscal and selectedTipoComprobante.requiere_rnc">Requiere RNC del cliente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" t-on-click="cancel">
+                        <i class="fa fa-times me-2"/>
+                        <t t-esc="props.cancelText"/>
+                    </button>
+                    <button class="btn btn-primary" t-on-click="confirm">
+                        <i class="fa fa-check me-2"/>
+                        <t t-esc="props.confirmText"/>
+                    </button>
+                </div>
+            </div>
         </div>
     </t>
+
+    <!-- Payment Screen NCF Button -->
+    <t t-name="odoo_ncf_pos.PaymentScreenButtons" 
+       t-inherit="point_of_sale.PaymentScreenButtons" 
+       t-inherit-mode="extension" 
+       owl="1">
+        <xpath expr="//div[hasclass('button-group')]" position="inside">
+            <button class="btn btn-light border rounded-3 py-3 px-4 text-start" 
+                    t-on-click="showNCFPopup"
+                    title="Configurar información fiscal NCF">
+                <i class="fa fa-file-text-o d-block mb-1 fs-1 text-info"/>
+                <div class="text-nowrap">
+                    <div class="fw-bolder">NCF</div>
+                    <div class="text-muted small">Fiscal</div>
+                </div>
+            </button>
+        </xpath>
+    </t>
+
+    <!-- Order Summary NCF Info -->
+    <t t-name="odoo_ncf_pos.OrderSummary" 
+       t-inherit="point_of_sale.OrderSummary" 
+       t-inherit-mode="extension" 
+       owl="1">
+        <xpath expr="//div[hasclass('order-info')]" position="after">
+            <div class="ncf-info mt-2" t-if="props.order.tipo_comprobante_id">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Tipo Comprobante:</span>
+                    <span t-esc="props.order.get_tipo_comprobante()?.name"/>
+                </div>
+                <div class="d-flex justify-content-between" t-if="props.order.is_fiscal()">
+                    <span class="text-muted">NCF:</span>
+                    <span class="fw-bold text-primary" t-esc="props.order.get_ncf()"/>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
 </templates>
