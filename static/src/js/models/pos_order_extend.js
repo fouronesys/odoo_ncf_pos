@@ -29,19 +29,24 @@ patch(Order.prototype, {
     set_tipo_comprobante(tipo_comprobante_id) {
         this.tipo_comprobante_id = tipo_comprobante_id;
         // Update fiscal status based on tipo_comprobante
-        const tipo_comprobante = this.pos.db.get_tipo_comprobante_by_id(tipo_comprobante_id);
+        const tipo_comprobante = this.get_tipo_comprobante();
         if (tipo_comprobante) {
             this.es_fiscal = tipo_comprobante.es_fiscal;
             if (this.es_fiscal && !this.ncf) {
                 // Auto-generate NCF if fiscal
                 this.generate_ncf();
             }
+        } else {
+            this.es_fiscal = false;
+            this.ncf = null;
         }
     },
 
     get_tipo_comprobante() {
         if (this.tipo_comprobante_id) {
-            return this.pos.db.get_tipo_comprobante_by_id(this.tipo_comprobante_id);
+            // Get from loaded POS data
+            const tipos_comprobante = this.pos.models['tipo.comprobante'] || [];
+            return tipos_comprobante.find(t => t.id === this.tipo_comprobante_id) || null;
         }
         return null;
     },

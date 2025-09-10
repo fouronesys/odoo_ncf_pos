@@ -128,19 +128,38 @@ class PosOrder(models.Model):
                 raise ValidationError(_('Tipo de comprobante no encontrado'))
             
             if not tipo_comprobante.es_fiscal:
-                return {'ncf': '', 'es_fiscal': False}
+                return {
+                    'ncf': '', 
+                    'es_fiscal': False,
+                    'success': True,
+                    'message': _('Tipo de comprobante no fiscal')
+                }
             
+            # Usar el método del módulo odoo_ncf_module para obtener secuencia activa
             seq = self.env['ncf.sequence'].get_active_sequence_for_type(
                 tipo_comprobante_id,
                 self.env.company.id
             )
+            
+            # Verificar que la secuencia tenga NCF disponibles
+            if seq.agotada:
+                raise ValidationError(_('La secuencia NCF está agotada'))
+            if seq.vencida:
+                raise ValidationError(_('La secuencia NCF está vencida'))
+            
             ncf_val = seq.get_next_ncf()
             
             return {
                 'ncf': ncf_val,
                 'es_fiscal': True,
                 'success': True,
-                'message': _('NCF generado exitosamente')
+                'message': _('NCF generado exitosamente'),
+                'sequence_info': {
+                    'serie': seq.serie,
+                    'disponibles': seq.disponibles,
+                    'alerta_stock_bajo': seq.alerta_stock_bajo,
+                    'alerta_vencimiento': seq.alerta_vencimiento
+                }
             }
             
         except Exception as e:
@@ -153,11 +172,70 @@ class PosOrder(models.Model):
             }
 
     @api.model
+    def get_tipos_comprobante_for_pos(self):
+        """Método para obtener tipos de comprobante para POS"""
+        try:
+            tipos = self.env['tipo.comprobante'].search([
+                ('para_venta', '=', True),
+                ('activo', '=', True)
+            ])
+            
+            result = []
+            for tipo in tipos:
+                # Obtener información de secuencia si es fiscal
+                sequence_info = None
+                if tipo.es_fiscal:
+                    try:
+                        seq = self.env['ncf.sequence'].get_active_sequence_for_type(
+                            tipo.id, self.env.company.id
+                        )
+                        sequence_info = {
+                            'disponibles': seq.disponibles,
+                            'serie': seq.serie,
+                            'estado': seq.estado,
+                        }
+                    except:
+                        sequence_info = {'disponibles': 0, 'estado': 'sin_secuencia'}
+                
+                result.append({
+                    'id': tipo.id,
+                    'name': tipo.name,
+                    'codigo': tipo.codigo,
+                    'es_fiscal': tipo.es_fiscal,
+                    'para_venta': tipo.para_venta,
+                    'requiere_rnc': tipo.requiere_rnc,
+                    'activo': tipo.activo,
+                    'sequence_info': sequence_info
+                })
+            
+            return result
+        except Exception as e:
+            _logger.error(f'Error en get_tipos_comprobante_for_pos: {str(e)}')
+            return []
+
+    @api.model
     def _load_pos_data_fields(self, config_id):
         """Agrega campos NCF a los datos del POS"""
         fields = super()._load_pos_data_fields(config_id)
-        fields.extend(['tipo_comprobante_id', 'ncf', 'es_fiscal'])
+        fields.extend(['tipo_comprobante_id', 'ncf', 'es_fiscal', 'ncf_generado_automaticamente'])
         return fields
+
+    @api.model
+    def _load_pos_data_models(self, config_id):
+        """Agrega modelos NCF a los datos del POS"""
+        models = super()._load_pos_data_models(config_id)
+        # Cargar tipos de comprobante para el POS
+        models.update({
+            'tipo.comprobante': {
+                'domain': [('para_venta', '=', True), ('activo', '=', True)],
+                'fields': ['name', 'codigo', 'es_fiscal', 'para_venta', 'requiere_rnc', 'activo'],
+            },
+            'ncf.sequence': {
+                'domain': [('activa', '=', True), ('company_id', '=', self.env.company.id)],
+                'fields': ['name', 'tipo_comprobante_id', 'serie', 'secuencia_actual', 'secuencia_hasta', 'disponibles'],
+            }
+        })
+        return models
 
     def _export_for_ui(self, order):
         """Exporta datos de la orden para la interfaz POS"""

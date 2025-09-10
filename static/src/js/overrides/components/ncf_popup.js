@@ -18,9 +18,29 @@ export class NCFPopup extends AbstractAwaitablePopup {
             tipo_comprobante_id: this.props.order?.tipo_comprobante_id || null,
             ncf: this.props.order?.ncf || '',
             auto_generate: true,
+            loading: false,
         });
         
-        this.tipos_comprobante = this.env.pos.db.get_tipos_comprobante() || [];
+        // Get tipos de comprobante from loaded POS data (from odoo_ncf_module)
+        this.tipos_comprobante = this.env.pos.models['tipo.comprobante'] || [];
+        this.loadTiposComprobante();
+    }
+
+    async loadTiposComprobante() {
+        try {
+            const result = await this.env.services.rpc({
+                model: 'pos.order',
+                method: 'get_tipos_comprobante_for_pos',
+                args: [],
+                context: this.env.pos.user.context,
+            });
+            
+            if (result) {
+                this.tipos_comprobante = result;
+            }
+        } catch (error) {
+            console.error('Error loading tipos de comprobante:', error);
+        }
     }
 
     get selectedTipoComprobante() {
@@ -63,6 +83,7 @@ export class NCFPopup extends AbstractAwaitablePopup {
             return;
         }
 
+        this.state.loading = true;
         try {
             const result = await this.env.services.rpc({
                 model: 'pos.order',
@@ -71,8 +92,35 @@ export class NCFPopup extends AbstractAwaitablePopup {
                 context: this.env.pos.user.context,
             });
             
-            if (result && result.ncf) {
+            if (result && result.success) {
                 this.state.ncf = result.ncf;
+                
+                // Mostrar alertas si existen
+                if (result.sequence_info) {
+                    const seq_info = result.sequence_info;
+                    if (seq_info.alerta_stock_bajo) {
+                        this.env.services.notification.add(
+                            _t('⚠️ Stock bajo: Solo quedan %s NCF disponibles', seq_info.disponibles),
+                            { type: 'warning' }
+                        );
+                    }
+                    if (seq_info.alerta_vencimiento) {
+                        this.env.services.notification.add(
+                            _t('⚠️ Secuencia próxima a vencer'),
+                            { type: 'warning' }
+                        );
+                    }
+                }
+                
+                this.env.services.notification.add(
+                    result.message,
+                    { type: 'success' }
+                );
+            } else {
+                this.env.services.notification.add(
+                    result.error || _t('Error al generar NCF'),
+                    { type: 'danger' }
+                );
             }
         } catch (error) {
             console.error('Error generating NCF:', error);
@@ -80,6 +128,8 @@ export class NCFPopup extends AbstractAwaitablePopup {
                 _t('Error al generar NCF: %s', error.message),
                 { type: 'danger' }
             );
+        } finally {
+            this.state.loading = false;
         }
     }
 

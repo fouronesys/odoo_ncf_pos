@@ -46,8 +46,10 @@
                                     <button class="btn btn-outline-primary" 
                                             type="button"
                                             t-on-click="generateNCF"
+                                            t-att-disabled="state.loading"
                                             title="Generar NCF automáticamente">
-                                        <i class="fa fa-refresh"/>
+                                        <i t-if="!state.loading" class="fa fa-refresh"/>
+                                        <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
                                     </button>
                                 </div>
                                 <small class="form-text text-muted">
@@ -78,6 +80,16 @@
                                     <li>Código: <t t-esc="selectedTipoComprobante.codigo"/></li>
                                     <li>Es Fiscal: <span t-if="selectedTipoComprobante.es_fiscal" class="badge bg-success">Sí</span><span t-else="" class="badge bg-secondary">No</span></li>
                                     <li t-if="selectedTipoComprobante.es_fiscal and selectedTipoComprobante.requiere_rnc">Requiere RNC del cliente</li>
+                                    <li t-if="selectedTipoComprobante.es_fiscal and selectedTipoComprobante.sequence_info">
+                                        <strong>Secuencia:</strong> 
+                                        <span t-if="selectedTipoComprobante.sequence_info.disponibles gt 0" class="text-success">
+                                            <t t-esc="selectedTipoComprobante.sequence_info.disponibles"/> NCF disponibles
+                                        </span>
+                                        <span t-else="" class="text-danger">Sin NCF disponibles</span>
+                                        <span t-if="selectedTipoComprobante.sequence_info.serie"> 
+                                            (Serie: <t t-esc="selectedTipoComprobante.sequence_info.serie"/>)
+                                        </span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
