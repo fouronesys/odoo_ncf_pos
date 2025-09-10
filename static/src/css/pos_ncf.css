@@ -1,0 +1,20 @@
+.popup {
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    max-width: 350px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.popup-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.popup-body select,
+.popup-body input[type="checkbox"] {
+    margin: 0.5rem 0;
+}
+.popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}

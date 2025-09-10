@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_pos_order_form_ncf_inherit" model="ir.ui.view">
+        <field name="name">pos.order.form.ncf.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="odoo_ncf_module.pos_order_form_ncf_restaurant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="tipo_comprobante_id"/>
+                <field name="es_fiscal"/>
+                <field name="ncf"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

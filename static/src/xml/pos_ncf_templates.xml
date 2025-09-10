@@ -1,0 +1,15 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_ncf_popup">
+        <div class="ncf-popup">
+            <label>Tipo de Comprobante:</label>
+            <select name="tipo_comprobante_id">
+                <t t-foreach="env.pos.db.tipo_comprobante" t-as="tipo">
+                    <option t-att-value="tipo.id"><t t-esc="tipo.name"/></option>
+                </t>
+            </select>
+            <label>NCF:</label>
+            <input type="text" name="ncf"/>
+            <button class="btn btn-primary confirm-ncf" t-on-click="confirm">Confirmar</button>
+        </div>
+    </t>
+</templates>
